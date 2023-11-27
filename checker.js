@@ -19,13 +19,9 @@ module.exports = {
 
         // get time in message
 
-
-        
-
-        inst.value = getTime(msg.content);
-
         console.log('initialised checker');
 
+        // set bot status and custom activity
         msg.client.user.setStatus('online');
         msg.client.user.setActivity('Operating', { type: ActivityType.Custom });
     },
@@ -33,7 +29,6 @@ module.exports = {
     run: function () {
         if (this.operating) {
             console.log(`OPERATING ON ${this.instances.length} INSTANCES.`);
-
         }
     }
 };
