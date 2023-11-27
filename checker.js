@@ -1,4 +1,5 @@
 const { Client, ActivityType } = require("discord.js");
+const OpenAi = require('openai');
 
 module.exports = {
     operating: false,
