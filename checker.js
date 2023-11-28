@@ -1,7 +1,8 @@
 const { Client, ActivityType } = require("discord.js");
 const OpenAI = require('openai');
+require('dotenv').config();
 
-const openai = new OpenAI({apiKey: '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'});
+const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 async function interpret(msgContent, msgTime) {
     const response = await openai.chat.completions.create({
       messages: [
@@ -30,7 +31,7 @@ function compareTimeStrings(timeString1, timeString2) {
 }
 
 function compareMemberVc (memVc) {
-    const voiceId = '1060874466617471001';  // voice channel id
+    const voiceId = '637232231575977995';  // voice channel id
     return memVc === voiceId;
 }
 
@@ -83,12 +84,11 @@ module.exports = {
         if (!this.instances.length) { this.operating = false; }
         if (this.operating) {
             console.log('---------------------------');
-            const msgChannel = '1178443473037312131';   // message channel id
+            const msgChannel = '637232851888242698';   // message channel id
             // loop through all instances
             this.instances.forEach((inst, index) => {
                 const guild = inst.msg.guild;
                 // const vc = guild.channels.resolve(voiceId);
-                const memId = inst.member.id;
                 const memVc = inst.member.voice.channelId;
                 const textChannel = guild.channels.cache.get(msgChannel);
 
@@ -97,7 +97,7 @@ module.exports = {
 
                 // get member's unique roles
                 let roleIds = inst.member.roles.cache.map((role) => role.id);
-                roleIds = roleIds.filter((r) => r != '1060874466617470997');
+                roleIds = roleIds.filter((r) => r != '1060874466617470997' && r != '637153000732753921' && r != '833649306560495657');
 
                 const comparison = compareTimeStrings(inst.time, getCurrentTime());
                 if (comparison === 0) {             // the time is here
@@ -108,8 +108,12 @@ module.exports = {
                 }
                 else if (comparison < 0) {           // the times has past
                     if (!compareMemberVc(memVc)) {   // member arrives late
-                        
-                        
+                        inst.minLate++;
+                        textChannel.send(`${mention(roleIds)} you are ${inst.minLate} minutes late.`)
+                        if (inst.minLate === 15) {
+                            textChannel.send(`${mention(roleIds)} is being a little bitch it seems.`);
+                            this.instances.splice(index, 1);    // remove instance 
+                        }
                     }
                 }  
             });
