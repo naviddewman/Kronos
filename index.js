@@ -2,7 +2,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
-const checker = require('./checker.js');
 require('dotenv').config();
 
 // Create a new client instance
@@ -14,6 +13,8 @@ const client = new Client({
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildPresences,
+        GatewayIntentBits.GuildVoiceStates,
+
     ],
 });
 
