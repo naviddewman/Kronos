@@ -12,6 +12,6 @@ module.exports = {
 
         setInterval(() => {
             checker.run();
-        }, 60000);
+        }, 5000);
     },
 };

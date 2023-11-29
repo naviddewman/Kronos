@@ -1,5 +1,6 @@
-const { Client, ActivityType } = require("discord.js");
+const { Client, ActivityType, PartialGroupDMChannel } = require("discord.js");
 const OpenAI = require('openai');
+const messageHandler = require("./messageHandler");
 require('dotenv').config();
 
 const openai = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
@@ -31,7 +32,7 @@ function compareTimeStrings(timeString1, timeString2) {
 }
 
 function compareMemberVc (memVc) {
-    const voiceId = '637232231575977995';  // voice channel id
+    const voiceId = process.env.VOICE_ID;  // voice channel id
     return memVc === voiceId;
 }
 
@@ -68,7 +69,7 @@ module.exports = {
             this.instances.push(inst);
 
             // get a dynamic reply
-            msg.reply('We will see about that.');
+            msg.reply(messageHandler.sendPromise());
             console.log('initialised checker');
     
             // set bot status and custom activity
@@ -84,7 +85,7 @@ module.exports = {
         if (!this.instances.length) { this.operating = false; }
         if (this.operating) {
             console.log('---------------------------');
-            const msgChannel = '637232851888242698';   // message channel id
+            const msgChannel = process.env.MESSAGE_ID;   // message channel id
             // loop through all instances
             this.instances.forEach((inst, index) => {
                 const guild = inst.msg.guild;
@@ -92,28 +93,31 @@ module.exports = {
                 const memVc = inst.member.voice.channelId;
                 const textChannel = guild.channels.cache.get(msgChannel);
 
-                console.log(compareMemberVc(memVc));
-                console.log(`Time promise: ${inst.time}`)
-
                 // get member's unique roles
                 let roleIds = inst.member.roles.cache.map((role) => role.id);
-                roleIds = roleIds.filter((r) => r != '1060874466617470997' && r != '637153000732753921' && r != '833649306560495657');
+                roleIds = roleIds.filter((r) => r != '637152080691200000' && r != '833649306560495657' && r != '637153000732753921');
+
+                console.log(compareMemberVc(memVc));
+                console.log(`Time promise: ${inst.time}`)
 
                 const comparison = compareTimeStrings(inst.time, getCurrentTime());
                 if (comparison === 0) {             // the time is here
                     if (compareMemberVc(memVc)) {
-                        textChannel.send(`No way. ${mention(roleIds)} actually on time?!`);
+                        messageHandler.sendOnTime(guild, mention(roleIds));
                         this.instances.splice(index, 1);    // remove instance 
                     }
                 }
                 else if (comparison < 0) {           // the times has past
                     if (!compareMemberVc(memVc)) {   // member arrives late
                         inst.minLate++;
-                        textChannel.send(`${mention(roleIds)} you are ${inst.minLate} minutes late.`)
+                        messageHandler.sendLate(guild, mention(roleIds), inst.minLate);
                         if (inst.minLate === 15) {
-                            textChannel.send(`${mention(roleIds)} is being a little bitch it seems.`);
+                            messageHandler.sendFinal(guild, mention(roleIds));
                             this.instances.splice(index, 1);    // remove instance 
                         }
+                    }
+                    else {
+                        this.instances.splice(index, 1);    // remove instance
                     }
                 }  
             });
